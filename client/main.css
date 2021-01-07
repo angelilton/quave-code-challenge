@@ -1,0 +1,40 @@
+body {
+  padding-top: 10px;
+  font-family: sans-serif;
+}
+
+.header {
+  margin: 25px;
+  justify-content: center;
+  text-align: center;
+}
+
+.event-info {
+  margin: 2rem 0;
+}
+
+.in-event {
+  background-color: blueviolet;
+  text-align: center;
+  padding-top: 1rem;
+  color: #fafafa;
+}
+
+.company {
+  background-color: aqua;
+  margin: 0 0.6rem;
+  text-align: center;
+  padding-top: 1rem;
+}
+
+.company > ul {
+  list-style: none;
+  padding-top: 1rem;
+}
+
+.not-CheckedIn {
+  background-color: brown;
+  text-align: center;
+  padding-top: 1rem;
+  color: #fafafa;
+}
