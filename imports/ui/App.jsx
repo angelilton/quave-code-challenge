@@ -26,22 +26,49 @@ export const App = () => {
     setEvent(e.target.value)
   }
 
-  // filter the check-in is true and return the length
-  const handleCheckedIn = () => {
-    const data = people.map(({ checkIn }) => Boolean(checkIn)).filter(Boolean)
-      .length
-    setCheckedIn(data)
+  // set check-In with date
+  const onCheckInClick = (_id) => {
+    People.update(_id, {
+      $set: {
+        checkIn: Date.now()
+      }
+    })
+    setCheckedIn(checkedIn + 1)
+    setNotCheckedIn(notCheckedIn - 1)
   }
 
-  // filter the NotCheck-in is false and return the length
+  // set check-out with date
+  const onCheckOutClick = (_id) => {
+    People.update(_id, {
+      $set: {
+        checkOut: Date.now()
+      }
+    })
+    setCheckedIn(checkedIn - 1)
+  }
+
+  // filter how many people in the event right now
+  const handleCheckedIn = () => {
+    const filterCheckInTrue = people
+      .map(({ checkIn }) => Boolean(checkIn))
+      .filter(Boolean).length
+
+    const filterCheckoutTrue = people
+      .map(({ checkOut }) => Boolean(checkOut))
+      .filter(Boolean).length
+
+    setCheckedIn(filterCheckInTrue - filterCheckoutTrue)
+  }
+
+  // filter how many People not checked-in
   const handleNotCheckedIn = () => {
-    const data = people
+    const filterNotCheckedIn = people
       .map(({ checkIn }) => Boolean(checkIn))
       .filter((c) => c === false).length
-    setNotCheckedIn(data)
+    setNotCheckedIn(filterNotCheckedIn)
   }
 
-  console.log('not checked:', notCheckedIn)
+  console.log('checked:', checkedIn)
 
   return (
     <Container>
@@ -155,22 +182,4 @@ export const App = () => {
 // format date using moment.js
 const formatDate = (date) => {
   return moment(date).format('MM/DD/YYYY, HH:mm')
-}
-
-// set check-In with date
-const onCheckInClick = (_id) => {
-  People.update(_id, {
-    $set: {
-      checkIn: Date.now()
-    }
-  })
-}
-
-// set check-out with date
-const onCheckOutClick = (_id) => {
-  People.update(_id, {
-    $set: {
-      checkOut: Date.now()
-    }
-  })
 }
