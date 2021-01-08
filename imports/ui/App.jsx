@@ -1,10 +1,11 @@
-import React, { useState, useCallback, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useTracker } from 'meteor/react-meteor-data'
 import { TEXTS } from '../infra/constants'
 import { People } from '../api/people'
 import { Communities } from '../api/communities'
 import { Button, Col, Container, Row, Table } from 'react-bootstrap'
-import moment from 'moment'
+import SelectEvents from './Select-events.jsx'
+import PeopleList from './People-list'
 
 export const App = () => {
   const [event, setEvent] = useState('')
@@ -76,21 +77,7 @@ export const App = () => {
         <h1 className="display-4">{TEXTS.HOME_TITLE}</h1>
       </Row>
 
-      <Container>
-        <Row>
-          <select
-            onChange={handleOnChangeSelect}
-            className="custom-select custom-select-lg mb-3"
-          >
-            <option defaultValue>Select an event</option>
-            {communities.map((event) => (
-              <option key={event._id} value={event._id}>
-                {event.name}
-              </option>
-            ))}
-          </select>
-        </Row>
-      </Container>
+      <SelectEvents communities={communities} onChange={handleOnChangeSelect} />
 
       <Container className="event-info">
         <Row>
@@ -118,68 +105,11 @@ export const App = () => {
         </Row>
       </Container>
 
-      <Container>
-        <Row>
-          <Table>
-            <thead>
-              <tr>
-                <th>Name</th>
-                <th>Company</th>
-                <th>Position</th>
-                <th>Check-in</th>
-                <th>check-out</th>
-              </tr>
-            </thead>
-            <tbody>
-              {people.map(
-                ({
-                  _id,
-                  firstName,
-                  lastName,
-                  title,
-                  companyName,
-                  checkIn,
-                  checkOut
-                }) => (
-                  <tr key={_id}>
-                    <td>
-                      {firstName} {lastName}
-                    </td>
-                    <td>{companyName}</td>
-                    <td>{title}</td>
-                    <td>
-                      {!!checkIn ? (
-                        <p>{`${formatDate(checkIn)}`}</p>
-                      ) : (
-                        <Button onClick={() => onCheckInClick(_id)}>
-                          Check-in
-                        </Button>
-                      )}
-                    </td>
-                    <td>
-                      {!!checkOut ? (
-                        <p>{`${formatDate(checkOut)}`}</p>
-                      ) : (
-                        <Button
-                          disabled={!checkIn}
-                          onClick={() => onCheckOutClick(_id)}
-                        >
-                          Check-out
-                        </Button>
-                      )}
-                    </td>
-                  </tr>
-                )
-              )}
-            </tbody>
-          </Table>
-        </Row>
-      </Container>
+      <PeopleList
+        people={people}
+        onCheckInClick={onCheckInClick}
+        onCheckOutClick={onCheckOutClick}
+      />
     </Container>
   )
-}
-
-// format date using moment.js
-const formatDate = (date) => {
-  return moment(date).format('MM/DD/YYYY, HH:mm')
 }
