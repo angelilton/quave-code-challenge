@@ -38,3 +38,7 @@ body {
   padding-top: 1rem;
   color: #fafafa;
 }
+
+td > button {
+  min-width: 120px;
+}

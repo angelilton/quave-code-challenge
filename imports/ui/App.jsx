@@ -1,19 +1,43 @@
-import React from 'react'
+import React, { useState, useCallback, useEffect } from 'react'
 import { useTracker } from 'meteor/react-meteor-data'
 import { TEXTS } from '../infra/constants'
 import { People } from '../api/people'
 import { Communities } from '../api/communities'
-import Events from './Events'
 import { Button, Col, Container, Row, Table } from 'react-bootstrap'
+import moment from 'moment'
 
 export const App = () => {
   const communities = useTracker(() => Communities.find({}).fetch())
-  const people = useTracker(() => People.find({}).fetch())
+  const [people, setPeople] = useState([])
+  const [event, setEvent] = useState('')
+  const [checkedIn, setCheckedIn] = useState('')
 
-  // show first and last name
-  const fullName = people.map(
-    ({ firstName, lastName }) => `${firstName} ${lastName}`
+  const handleOnChangeSelect = useCallback(
+    (e) => {
+      setEvent(e.target.value)
+      fetchData()
+    },
+    [event]
   )
+
+  useEffect(() => {
+    handleCheckedIn()
+  }, [event])
+
+  // handling with people in event if was selected
+  // const people = useTracker(() => People.find({ communityId: event }).fetch())
+  const fetchData = () => {
+    const result = useTracker(() => People.find({ communityId: event }).fetch())
+    setPeople(...result)
+  }
+
+  const handleCheckedIn = () => {
+    const data = people.map(({ checkIn }) => Boolean(checkIn)).filter(Boolean)
+      .length
+    setCheckedIn(data)
+  }
+
+  console.log('checked:', checkedIn)
 
   return (
     <Container>
@@ -21,13 +45,27 @@ export const App = () => {
         <h1 className="display-4">{TEXTS.HOME_TITLE}</h1>
       </Row>
 
-      <Events communities={communities} />
+      <Container>
+        <Row>
+          <select
+            onChange={handleOnChangeSelect}
+            className="custom-select custom-select-lg mb-3"
+          >
+            <option defaultValue>Select an event</option>
+            {communities.map((event) => (
+              <option key={event._id} value={event._id}>
+                {event.name}
+              </option>
+            ))}
+          </select>
+        </Row>
+      </Container>
 
       <Container className="event-info">
         <Row>
           <Col sm className="in-event">
             <h4>right now:</h4>
-            <h2>10</h2>
+            <h2>{checkedIn}</h2>
           </Col>
 
           <Col sm className="company">
@@ -53,39 +91,79 @@ export const App = () => {
         <Row>
           <Table>
             <thead>
-              <th>Name</th>
-              <th>Company</th>
-              <th>Position</th>
-              <th>Check-in</th>
-              <th>check-out</th>
+              <tr>
+                <th>Name</th>
+                <th>Company</th>
+                <th>Position</th>
+                <th>Check-in</th>
+                <th>check-out</th>
+              </tr>
             </thead>
             <tbody>
-              <tr>
-                <td>Ted Gonzalez</td>
-                <td>Engineer</td>
-                <td>Propeller Heads</td>
-                <td>
-                  <Button>Check-in</Button>
-                </td>
-                <td>
-                  <Button disabled>Check-out</Button>
-                </td>
-              </tr>
-              <tr>
-                <td>angelilton epifanio</td>
-                <td>Developer</td>
-                <td>quave</td>
-                <td>
-                  <Button>Check-in</Button>
-                </td>
-                <td>
-                  <Button disabled>Check-out</Button>
-                </td>
-              </tr>
+              {people.map(
+                ({
+                  _id,
+                  firstName,
+                  lastName,
+                  title,
+                  companyName,
+                  checkIn,
+                  checkOut
+                }) => (
+                  <tr key={_id}>
+                    <td>
+                      {firstName} {lastName}
+                    </td>
+                    <td>{companyName}</td>
+                    <td>{title}</td>
+                    <td>
+                      {!!checkIn ? (
+                        <p>{`${formatDate(checkIn)}`}</p>
+                      ) : (
+                        <Button onClick={() => onCheckInClick(_id)}>
+                          Check-in
+                        </Button>
+                      )}
+                    </td>
+                    <td>
+                      {!!checkOut ? (
+                        <p>{`${formatDate(checkOut)}`}</p>
+                      ) : (
+                        <Button
+                          disabled={!checkIn}
+                          onClick={() => onCheckOutClick(_id)}
+                        >
+                          Check-out
+                        </Button>
+                      )}
+                    </td>
+                  </tr>
+                )
+              )}
             </tbody>
           </Table>
         </Row>
       </Container>
     </Container>
   )
+}
+
+const formatDate = (date) => {
+  return moment(date).format('MM/DD/YYYY, HH:mm')
+}
+
+const onCheckInClick = (_id) => {
+  People.update(_id, {
+    $set: {
+      checkIn: Date.now()
+    }
+  })
+}
+
+const onCheckOutClick = (_id) => {
+  People.update(_id, {
+    $set: {
+      checkOut: Date.now()
+    }
+  })
 }
