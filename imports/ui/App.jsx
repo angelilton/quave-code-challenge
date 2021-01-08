@@ -7,37 +7,41 @@ import { Button, Col, Container, Row, Table } from 'react-bootstrap'
 import moment from 'moment'
 
 export const App = () => {
-  const communities = useTracker(() => Communities.find({}).fetch())
-  const [people, setPeople] = useState([])
   const [event, setEvent] = useState('')
-  const [checkedIn, setCheckedIn] = useState('')
+  const [checkedIn, setCheckedIn] = useState(null)
+  const [notCheckedIn, setNotCheckedIn] = useState(null)
 
-  const handleOnChangeSelect = useCallback(
-    (e) => {
-      setEvent(e.target.value)
-      fetchData()
-    },
-    [event]
-  )
+  // fetch data from mongoDB collection Communities/People
+  const communities = useTracker(() => Communities.find({}).fetch())
+  const people = useTracker(() => People.find({ communityId: event }).fetch())
 
+  //componentDidUpdate, so rendering ever the variable(event) is changed.
   useEffect(() => {
     handleCheckedIn()
+    handleNotCheckedIn()
   }, [event])
 
-  // handling with people in event if was selected
-  // const people = useTracker(() => People.find({ communityId: event }).fetch())
-  const fetchData = () => {
-    const result = useTracker(() => People.find({ communityId: event }).fetch())
-    setPeople(...result)
+  //handle with select onChange value
+  const handleOnChangeSelect = (e) => {
+    setEvent(e.target.value)
   }
 
+  // filter the check-in is true and return the length
   const handleCheckedIn = () => {
     const data = people.map(({ checkIn }) => Boolean(checkIn)).filter(Boolean)
       .length
     setCheckedIn(data)
   }
 
-  console.log('checked:', checkedIn)
+  // filter the NotCheck-in is false and return the length
+  const handleNotCheckedIn = () => {
+    const data = people
+      .map(({ checkIn }) => Boolean(checkIn))
+      .filter((c) => c === false).length
+    setNotCheckedIn(data)
+  }
+
+  console.log('not checked:', notCheckedIn)
 
   return (
     <Container>
@@ -82,7 +86,7 @@ export const App = () => {
 
           <Col sm className="not-CheckedIn">
             <h4>Not checked-in:</h4>
-            <h2>200</h2>
+            <h2>{notCheckedIn}</h2>
           </Col>
         </Row>
       </Container>
@@ -148,10 +152,12 @@ export const App = () => {
   )
 }
 
+// format date using moment.js
 const formatDate = (date) => {
   return moment(date).format('MM/DD/YYYY, HH:mm')
 }
 
+// set check-In with date
 const onCheckInClick = (_id) => {
   People.update(_id, {
     $set: {
@@ -160,6 +166,7 @@ const onCheckInClick = (_id) => {
   })
 }
 
+// set check-out with date
 const onCheckOutClick = (_id) => {
   People.update(_id, {
     $set: {
