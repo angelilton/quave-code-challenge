@@ -3,9 +3,10 @@ import { useTracker } from 'meteor/react-meteor-data'
 import { TEXTS } from '../infra/constants'
 import { People } from '../api/people'
 import { Communities } from '../api/communities'
-import { Button, Col, Container, Row, Table } from 'react-bootstrap'
+import { Container, Row } from 'react-bootstrap'
 import SelectEvents from './Select-events.jsx'
 import PeopleList from './People-list'
+import EventInfo from './Event-info'
 
 export const App = () => {
   const [event, setEvent] = useState('')
@@ -20,6 +21,7 @@ export const App = () => {
   useEffect(() => {
     handleCheckedIn()
     handleNotCheckedIn()
+    filterCompanyName()
   }, [event])
 
   //handle with select onChange value
@@ -69,7 +71,27 @@ export const App = () => {
     setNotCheckedIn(filterNotCheckedIn)
   }
 
-  console.log('checked:', checkedIn)
+  //filter how many company
+  const filterCompanyName = () => {
+    const filterCompany = people
+      .map(({ companyName }) => companyName)
+      .filter((c) => {
+        if (c) {
+          return c
+        }
+        return
+      })
+      .filter((c) => c === c)
+
+    console.log(
+      'company:',
+      filterCompany.reduce(
+        (contador, elem) =>
+          Object.assign(contador, { [elem]: (contador[elem] || 0) + 1 }),
+        {}
+      )
+    )
+  }
 
   return (
     <Container>
@@ -79,31 +101,7 @@ export const App = () => {
 
       <SelectEvents communities={communities} onChange={handleOnChangeSelect} />
 
-      <Container className="event-info">
-        <Row>
-          <Col sm className="in-event">
-            <h4>right now:</h4>
-            <h2>{checkedIn}</h2>
-          </Col>
-
-          <Col sm className="company">
-            <h4>Company</h4>
-            <ul>
-              <li>
-                <h6>Green Group: 10 </h6>
-              </li>
-              <li>
-                <h6>Hoppe Group: 5</h6>
-              </li>
-            </ul>
-          </Col>
-
-          <Col sm className="not-CheckedIn">
-            <h4>Not checked-in:</h4>
-            <h2>{notCheckedIn}</h2>
-          </Col>
-        </Row>
-      </Container>
+      <EventInfo checkedIn={checkedIn} notCheckedIn={notCheckedIn} />
 
       <PeopleList
         people={people}
